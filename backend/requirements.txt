@@ -1,6 +1,13 @@
+# Core runtime
 flask==2.3.2
 flask-cors==3.0.10
-numpy==1.24.4
-tensorflow==2.19.0
 requests==2.31.0
 python-dotenv==1.0.0
+
+# ML stack
+numpy==1.24.4
+tensorflow==2.19.0
+
+# Build tools needed on Render for numpy / TF
+setuptools>=65.0.0
+wheel>=0.41.0
