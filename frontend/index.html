@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toxinator - Comment Toxicity Classifier</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Retro Fonts: Luckiest Guy for main titles, Klee One for content --><link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Load Lucide Icons --><script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <style>
+        /* Classic Cartoon Palette */
+        :root {
+            --color-primary-red: #E53935; 
+            --color-secondary-yellow: #FFC107;
+            --color-accent-blue: #2196F3;
+            --color-base-cream: #FFFDE7;
+            --color-shadow: #212121;
+        }
+
+        /* General Cartoon Styles */
+        body { 
+            font-family: 'Klee One', 'Inter', sans-serif; 
+            background-color: var(--color-secondary-yellow); 
+        }
+        
+        .wavy-border {
+            border: 4px solid var(--color-shadow);
+            background-image: repeating-linear-gradient(45deg, var(--color-shadow) 0, var(--color-shadow) 1px, transparent 1px, transparent 3px);
+            background-size: 8px 8px;
+            background-repeat: repeat;
+        }
+
+        /* Bold Headers: Luckiest Guy for punchy titles */
+        .bold-header { 
+            font-family: 'Luckiest Guy', cursive; 
+            font-weight: 400; 
+            letter-spacing: 1px;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+        
+        .main-bold-title { 
+            text-shadow: 6px 6px 0px var(--color-shadow);
+        }
+
+        @media (max-width: 639px) {
+            .main-bold-title {
+                text-shadow: 3px 3px 0px var(--color-shadow);
+            }
+            .metric-value {
+                text-shadow: none;
+            }
+        }
+        @media (min-width: 640px) {
+             .section-header {
+                font-size: 1.75rem;
+            }
+        }
+
+        .section-header {
+            font-family: 'Luckiest Guy', cursive; 
+            font-size: 1.5rem;
+            padding: 0.6rem 1.5rem;
+            border: 3px solid var(--color-shadow); 
+            border-radius: 9999px;
+            display: inline-flex;
+            box-shadow: 4px 4px 0px var(--color-shadow); 
+            text-shadow: 1px 1px 0px white;
+            line-height: 1;
+        }
+        
+        /* Overall container card style */
+        .card-pop {
+            border: 6px solid var(--color-shadow);
+            border-radius: 20px; 
+            box-shadow: 12px 12px 0px var(--color-primary-red);
+        }
+        .card-inner {
+            border: 3px solid var(--color-shadow);
+            border-radius: 16px;
+        }
+        .progress-bar-container { height: 1.75rem; }
+        
+        /* Metrics values */
+        .metric-value {
+             font-family: 'Luckiest Guy', cursive; 
+             font-weight: 400;
+             text-shadow: 2px 2px 0px var(--color-shadow);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 sm:p-6 md:p-10">
+
+    <div id="app" class="w-full max-w-4xl bg-white p-6 sm:p-8 md:p-10 space-y-10 sm:space-y-12 card-pop" style="background-color: var(--color-base-cream);">
+        
+        <!-- Header --><header class="text-center p-6 sm:p-8 rounded-xl wavy-border shadow-[8px_8px_0px_var(--color-shadow)]" style="background-color: var(--color-primary-red);">
+            <div class="inline-flex items-center space-x-2 sm:space-x-4 mb-3">
+                <h1 class="text-4xl sm:text-5xl md:text-6xl text-white main-bold-title bold-header">TOXINATOR!</h1>
+            </div>
+            <p class="text-xl sm:text-2xl text-white font-bold">Identify rude, harmful, or hateful comments instantly to keep conversations respectful, safe, and engaging.</p>
+        </header>
+
+        <!-- Live Classifier Section --><section class="space-y-6 sm:space-y-8">
+            <h2 class="section-header mx-auto" style="background-color: var(--color-secondary-yellow); color: var(--color-primary-red);">
+                <i data-lucide="bot" class="w-6 h-6 sm:w-8 sm:h-8 mr-2"></i>
+                <span class="bold-header">CHECK TOXICITY NOW!</span>
+            </h2>
+            <!-- Input Area --><div class="space-y-4 sm:space-y-6 p-4 sm:p-6 card-inner shadow-[6px_6px_0px_var(--color-shadow)]" style="background-color: #f7f7e7;">
+                <label for="comment-input" class="block text-lg sm:text-xl font-bold text-gray-800" style="font-family: 'Klee One', cursive; font-weight: 600;">ENTER A COMMENT FOR ANALYSIS:</label>
+                <textarea id="comment-input" rows="4" 
+                              placeholder="ZAP! Type your comment here..."
+                              class="w-full p-3 sm:p-4 border-4 border-black rounded-lg focus:ring-red-500 focus:border-red-500 transition duration-150 ease-in-out resize-none shadow-[4px_4px_0px_var(--color-shadow)] text-lg sm:text-xl font-mono bg-white"></textarea>
+                
+                <button id="classify-btn" 
+                              class="w-full flex items-center justify-center px-4 py-3 sm:px-6 sm:py-4 border-4 border-black text-xl sm:text-2xl font-bold rounded-full shadow-[6px_6px_0px_var(--color-shadow)] text-white hover:bg-green-600 active:shadow-none active:translate-x-1 active:translate-y-1 focus:outline-none transition ease-in-out duration-100 disabled:opacity-50 disabled:shadow-none"
+                              style="background-color: var(--color-primary-red);">
+                    <span id="button-text" class="bold-header">CLASSIFY COMMENT!</span>
+                    <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-6 w-6 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Results Area --><div id="results-area" class="space-y-6 pt-6 border-t-4 border-dashed border-gray-400 hidden">
+                <h3 class="text-2xl sm:text-3xl font-extrabold bold-header" style="color: var(--color-primary-red); text-shadow: 2px 2px 0px var(--color-shadow);">PROBABILITY SCORES:</h3>
+                <div id="output-scores" class="space-y-6">
+                    <!-- Results will be inserted here by JavaScript --></div>
+                <p class="text-sm sm:text-base font-medium text-gray-700 italic pt-4 border-t border-gray-300">
+                    A score above 50% means the toxicity level is HIGH!
+                </p>
+            </div>
+
+            <!-- AI Commentary Section --><div id="commentary-area" class="space-y-4 pt-6 border-t-4 border-dashed border-gray-400 hidden">
+                <h3 class="text-2xl sm:text-3xl font-extrabold bold-header flex items-center" style="color: var(--color-accent-blue); text-shadow: 2px 2px 0px var(--color-shadow);">
+                    <i data-lucide="sparkles" class="w-6 h-6 mr-2"></i>
+                    AI'S HOT TAKE!
+                </h3>
+                <div id="ai-analysis-card" class="p-4 sm:p-6 card-inner shadow-[6px_6px_0px_var(--color-shadow)]" style="background-color: #e3f2fd; border-color: var(--color-accent-blue);">
+                    <p class="text-base sm:text-lg italic text-gray-800" id="analysis-text">
+                        <!-- Analysis text will be inserted here -->
+                    </p>
+                </div>
+            </div>
+
+            <!-- Message/Status Area --><div id="message-box" class="card-inner p-4 hidden" role="alert" style="font-family: 'Klee One', cursive; font-weight: 600;">
+                <p id="status-message" class="font-bold text-base sm:text-lg"></p>
+            </div>
+        </section>
+
+        <!-- Metrics Section --><section class="space-y-6 sm:space-y-8 pt-6 sm:pt-8 border-t-4 border-dashed border-gray-400">
+            <h2 class="section-header mx-auto" style="background-color: var(--color-primary-red); color: var(--color-secondary-yellow);">
+                <i data-lucide="bar-chart-3" class="w-6 h-6 sm:w-8 sm:h-8 mr-2"></i>
+                <span class="bold-header">THE SCOREBOARD!</span>
+            </h2>
+            
+            <div id="metrics-data" class="grid sm:grid-cols-3 gap-6 sm:gap-8">
+                <!-- Most Toxic Score --><div class="p-5 sm:p-6 rounded-lg card-inner shadow-[6px_6px_0px_var(--color-shadow)]" style="background-color: #FFEBEE;">
+                    <p class="text-sm sm:text-base font-bold text-red-700">MOST TOXIC!</p>
+                    <p class="text-4xl sm:text-5xl text-red-800 mt-2 metric-value" id="metric-most-toxic">0.00%</p>
+                </div>
+                <!-- Least Toxic Score --><div class="p-5 sm:p-6 rounded-lg card-inner shadow-[6px_6px_0px_var(--color-shadow)]" style="background-color: #E8F5E9;">
+                    <p class="text-sm sm:text-base font-bold text-green-700">LEAST TOXIC!</p>
+                    <p class="text-4xl sm:text-5xl text-green-800 mt-2 metric-value" id="metric-least-toxic">100%</p>
+                </div>
+                <!-- Average Toxic Score --><div class="p-5 sm:p-6 rounded-lg card-inner shadow-[6px_6px_0px_var(--color-shadow)]" style="background-color: #FFF8E1;">
+                    <p class="text-sm sm:text-base font-bold text-orange-700">AVERAGE TOXICITY</p>
+                    <p class="text-4xl sm:text-5xl text-orange-800 mt-2 metric-value" id="metric-avg-toxic">0.00%</p>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-lg card-inner border-l-8 border-gray-800 text-gray-800 text-sm font-medium" style="background-color: #FFF8E1; border-color: var(--color-secondary-yellow);">
+                <p class="font-bold text-base">⚡ SYSTEM SPECS</p>
+                <p class="mt-2">This system relies on a Bidirectional LSTM (BiLSTM) deep learning model for fast, accurate classification.</p>
+
+                <p class="font-bold mt-3">KEY PERFORMANCE METRICS:</p>
+                <ul class="list-disc list-inside ml-4 mt-2 text-sm" style="font-family: 'Klee One', cursive;">
+                    <li><strong>Model Size:</strong> The engine contains over 6.49 Million Parameters, enabling it to capture complex language patterns.</li>
+                    <li><strong>Accuracy (Precision):</strong> Approximately 92.8% precision on held-out evaluation data.</li>
+                    <li><strong>Core Components:</strong> Bidirectional LSTM for deep context understanding, paired with dense layers for final multi-label scoring.</li>
+                </ul>
+
+                <p class="mt-3"><strong>POWERED BY:</strong> TensorFlow (BiLSTM) for speed and Gemini for contextual commentary.</p>
+
+                <p class="mt-3 text-sm">GitHub: <a href="https://github.com/your-repo" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold underline">LINK</a></p>
+            </div>
+
+        </section>
+
+    </div>
+
+    <script>
+        // --- Configuration ---
+        // CLASSIFICATION API ENDPOINT (Points to your local Flask app)
+        const CLASSIFY_ENDPOINT = 'http://localhost:5000/api/classify'; 
+        
+        // NO LLM API KEY REQUIRED HERE. It is securely managed on the server side (app.py).
+
+        // --- DOM Elements ---
+        const commentInput = document.getElementById('comment-input');
+        const classifyBtn = document.getElementById('classify-btn');
+        const buttonText = document.getElementById('button-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const resultsArea = document.getElementById('results-area');
+        const outputScores = document.getElementById('output-scores');
+        const messageBox = document.getElementById('message-box');
+        const statusMessage = document.getElementById('status-message');
+        
+        // LLM DOM elements
+        const commentaryArea = document.getElementById('commentary-area');
+        const analysisText = document.getElementById('analysis-text');
+
+        // New DOM elements for live metrics
+        const metricMostToxic = document.getElementById('metric-most-toxic');
+        const metricLeastToxic = document.getElementById('metric-least-toxic');
+        const metricAvgToxic = document.getElementById('metric-avg-toxic');
+
+        // --- Live Metrics State ---
+        let mostToxicOverall = 0; 
+        let leastToxicOverall = 1; 
+        let totalToxicSum = 0; 
+        let classificationCount = 0; 
+        
+        // Function to update the Scoreboard section with current running metrics
+        function updateLiveMetrics(currentAverage) {
+            if (currentAverage > mostToxicOverall) {
+                mostToxicOverall = currentAverage;
+            }
+            if (currentAverage < leastToxicOverall) {
+                leastToxicOverall = currentAverage;
+            }
+
+            classificationCount++;
+            totalToxicSum += currentAverage;
+            const runningAverage = totalToxicSum / classificationCount;
+
+            metricMostToxic.textContent = (mostToxicOverall * 100).toFixed(2) + '%';
+            metricLeastToxic.textContent = (leastToxicOverall * 100).toFixed(2) + '%';
+            metricAvgToxic.textContent = (runningAverage * 100).toFixed(2) + '%';
+
+            if (classificationCount === 1) {
+                metricLeastToxic.textContent = (leastToxicOverall * 100).toFixed(2) + '%';
+            }
+        }
+
+
+        // --- Utility Functions ---
+
+        /**
+         * Shows a temporary message/status in the dedicated box.
+         * @param {string} msg The message text.
+         * @param {string} type 'success', 'error', or 'warning'.
+         */
+        function showMessage(msg, type) {
+            messageBox.classList.remove('hidden');
+            messageBox.style.boxShadow = '4px 4px 0px #212121';
+            
+            messageBox.style.backgroundColor = '#FFFDE7';
+            messageBox.style.color = '#212121';
+            messageBox.style.borderColor = '#212121';
+
+            if (type === 'error') {
+                messageBox.style.backgroundColor = '#FFEBEE';
+                messageBox.style.borderColor = '#E53935';
+                statusMessage.style.color = '#C62828';
+            } else if (type === 'success') {
+                messageBox.style.backgroundColor = '#E8F5E9';
+                messageBox.style.borderColor = '#4CAF50';
+                statusMessage.style.color = '#2E7D32';
+            } else { // Warning/Info
+                messageBox.style.backgroundColor = '#FFF8E1';
+                messageBox.style.borderColor = '#FFC107';
+                statusMessage.style.color = '#FFA000';
+            }
+            statusMessage.textContent = msg;
+        }
+
+        /**
+         * Toggles the loading state of the UI.
+         * @param {boolean} isLoading 
+         */
+        function toggleLoading(isLoading) {
+            const btn = classifyBtn;
+            btn.disabled = isLoading;
+            if (isLoading) {
+                buttonText.textContent = 'ANALYZING';
+                loadingSpinner.classList.remove('hidden');
+                outputScores.innerHTML = '';
+                analysisText.textContent = "Processing witty commentary...";
+                commentaryArea.classList.remove('hidden');
+
+                btn.style.boxShadow = 'none';
+                btn.style.transform = 'translate(4px, 4px)';
+
+                messageBox.classList.add('hidden');
+
+            } else {
+                buttonText.textContent = 'CLASSIFY COMMENT!';
+                loadingSpinner.classList.add('hidden');
+                btn.style.boxShadow = '6px 6px 0px var(--color-shadow)';
+                btn.style.transform = 'translate(0, 0)';
+            }
+        }
+
+        /**
+         * Checks the Flask API health and updates the status.
+         */
+        async function initializeApp() {
+            showMessage("ATTEMPTING TO CONNECT TO FLASK API (http://localhost:5000/api/health)...", "warning");
+            classifyBtn.disabled = true;
+
+            try {
+                // Check health endpoint for status
+                const healthResponse = await fetch('http://localhost:5000/api/health', { method: 'GET' });
+                if (!healthResponse.ok) {
+                    const errorJson = await healthResponse.json();
+                    throw new Error(`API responded with ${healthResponse.status}: ${errorJson.message || 'Unknown error'}`);
+                }
+                const healthData = await healthResponse.json();
+
+                // Check for degraded status due to missing LLM key
+                if (healthData.status === "degraded") {
+                    showMessage(`API LOADED (DEGRADED): ${healthData.message} Classification works, but commentary may fail.`, "warning");
+                } else {
+                    showMessage(`API READY! MODEL STATUS: ${healthData.status.toUpperCase()}. ENTER TEXT TO CLASSIFY!`, "success");
+                }
+                
+                classifyBtn.disabled = false;
+
+            } catch (error) {
+                console.error("CRITICAL ERROR CONNECTING TO FLASK API:", error);
+                showMessage(`ERROR! COULD NOT CONNECT TO API! Error: ${error.message}`, "error");
+            }
+        }
+
+        /**
+         * Handles the classification process by calling the Flask API.
+         */
+        async function classifyComment() {
+            const comment = commentInput.value.trim();
+            if (comment.length === 0) {
+                showMessage("HEY! PUT SOME TEXT IN THE BOX FIRST!", "warning");
+                return;
+            }
+            
+            toggleLoading(true);
+
+            let overallScore;
+            let detailedScores;
+            let categories;
+            let analysisTextFromAPI;
+            let success = false;
+
+            try {
+                // Call the local Flask API for classification and LLM commentary
+                const response = await fetch(CLASSIFY_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ comment: comment })
+                });
+
+                const data = await response.json();
+                
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || `API returned status ${response.status}`);
+                }
+                
+                // Extract all data, including the new analysis_text field
+                overallScore = data.toxic_score;
+                detailedScores = data.detailed_scores;
+                categories = data.categories;
+                analysisTextFromAPI = data.analysis_text; 
+                success = true;
+
+            } catch (error) {
+                console.error("CLASSIFICATION API ERROR:", error);
+                showMessage(`ZAP! CLASSIFICATION FAILED! Check console. Error: ${error.message}`, "error");
+            }
+
+            if (success) {
+                 // Render Toxicity Scores and Update Metrics
+                renderResults(overallScore, detailedScores, categories);
+
+                // Populate the commentary section with the text received from Flask
+                analysisText.textContent = analysisTextFromAPI;
+
+            } else {
+                // In case of failure, set a generic error message
+                analysisText.textContent = "BEEP BOOP! Failed to classify and generate quirky analysis.";
+            }
+
+
+            toggleLoading(false);
+            resultsArea.classList.remove('hidden');
+        }
+
+        /**
+         * Renders the classification scores, showing only the bar for the overall average.
+         * @param {number} overallScore The average toxicity score (0 to 1).
+         * @param {Array<number>} scores Array of 6 prediction scores (0 to 1).
+         * @param {Array<string>} labels Array of category labels.
+         */
+        function renderResults(overallScore, scores, labels) {
+            outputScores.innerHTML = ''; // Clear previous results
+
+            // *** UPDATE LIVE METRICS STATE ***
+            updateLiveMetrics(overallScore); 
+            // **********************************
+
+            const overallPercentage = (overallScore * 100).toFixed(2);
+            
+            // Determine overall severity for the average bar styling
+            let overallBarColor = 'bg-green-600';
+            let overallTextColor = 'text-green-800';
+            if (overallScore > 0.5) {
+                overallBarColor = 'bg-red-700';
+                overallTextColor = 'text-red-900';
+            } else if (overallScore > 0.2) {
+                overallBarColor = 'bg-orange-500'; 
+                overallTextColor = 'text-orange-800';
+            }
+            
+            // 1. Insert Overall Score Bar
+            const overallHtml = `
+                <div class="space-y-1 pb-6 border-b-4 border-dashed border-gray-300">
+                    <div class="flex justify-between items-center text-xl sm:text-2xl font-bold">
+                        <span class="bold-header text-gray-800" style="color: var(--color-accent-blue);">TOTAL TOXICITY AVERAGE:</span>
+                        <span class="${overallTextColor} text-3xl sm:text-4xl metric-value">${overallPercentage}%</span>
+                    </div>
+                    <div class="progress-bar-container w-full bg-white rounded-lg overflow-hidden border-3 border-black shadow-[4px_4px_0px_var(--color-shadow)]">
+                        <div class="h-full rounded-md transition-all duration-700 ease-out ${overallBarColor} font-bold text-white text-sm flex items-center justify-end pr-2" 
+                              style="width: ${overallPercentage}%;">
+                        </div>
+                    </div>
+                </div>
+            `;
+            outputScores.insertAdjacentHTML('beforeend', overallHtml);
+
+            // 2. Insert Individual Scores (Text values only)
+            scores.forEach((score, index) => {
+                const label = labels[index];
+                const percentage = (score * 100).toFixed(2);
+                const isToxic = score > 0.5;
+
+                // Dynamic color coding based on score severity 
+                let textColor;
+
+                if (isToxic) { 
+                    textColor = 'text-red-800';
+                } else if (score > 0.2) {
+                    textColor = 'text-orange-700';
+                } else { 
+                    textColor = 'text-gray-900';
+                }
+                
+                // Render just the label and percentage value, NO bar.
+                const scoreHtml = `
+                    <div class="flex justify-between items-center text-lg sm:text-xl font-bold py-1">
+                        <span class="capitalize ${textColor}" style="font-family: 'Luckiest Guy', cursive;">${label.replace('_', ' ')}:</span>
+                        <span class="text-2xl sm:text-3xl metric-value ${textColor}">${percentage}%</span>
+                    </div>
+                `;
+                outputScores.insertAdjacentHTML('beforeend', scoreHtml);
+            });
+        }
+        
+        // --- Event Listeners and Initialization ---
+        classifyBtn.addEventListener('click', classifyComment);
+
+        // Initialize the app by checking the health of the local Flask API
+        window.onload = () => {
+            initializeApp();
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        };
+    </script>
+</body>
+</html>
