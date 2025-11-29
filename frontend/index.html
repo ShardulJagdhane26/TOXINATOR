@@ -303,11 +303,11 @@
         }
 
         async function initializeApp() {
-            showMessage("ATTEMPTING TO CONNECT TO FLASK API (https://toxinator.onrender.com/api/health)...", "warning");
+            showMessage("ATTEMPTING TO CONNECT TO FLASK API...", "warning");
             classifyBtn.disabled = true;
 
             try {
-                const healthResponse = await fetch('/api/classify', { method: 'GET' });
+                const healthResponse = await fetch('/api/predict', { method: 'GET' });
                 if (!healthResponse.ok) {
                     const errorJson = await healthResponse.json();
                     throw new Error(`API responded with ${healthResponse.status}: ${errorJson.message || 'Unknown error'}`);
