@@ -307,7 +307,7 @@
             classifyBtn.disabled = true;
 
             try {
-                const healthResponse = await fetch('/api/predict', { method: 'GET' });
+                const healthResponse = await fetch('https://toxinator.onrender.com', { method: 'GET' });
                 if (!healthResponse.ok) {
                     const errorJson = await healthResponse.json();
                     throw new Error(`API responded with ${healthResponse.status}: ${errorJson.message || 'Unknown error'}`);
