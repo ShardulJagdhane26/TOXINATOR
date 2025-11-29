@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -21,6 +21,7 @@
             --color-shadow: #212121;
         }
 
+
         /* General Cartoon Styles */
         body { 
             font-family: 'Klee One', 'Inter', sans-serif; 
@@ -33,6 +34,7 @@
             background-size: 8px 8px;
             background-repeat: repeat;
         }
+
 
         /* Bold Headers: Luckiest Guy for punchy titles */
         .bold-header { 
@@ -47,6 +49,7 @@
             text-shadow: 6px 6px 0px var(--color-shadow);
         }
 
+
         @media (max-width: 639px) {
             .main-bold-title {
                 text-shadow: 3px 3px 0px var(--color-shadow);
@@ -60,6 +63,7 @@
                 font-size: 1.75rem;
             }
         }
+
 
         .section-header {
             font-family: 'Luckiest Guy', cursive; 
@@ -95,6 +99,7 @@
 </head>
 <body class="min-h-screen flex flex-col items-center p-4 sm:p-6 md:p-10">
 
+
     <div id="app" class="w-full max-w-4xl bg-white p-6 sm:p-8 md:p-10 space-y-10 sm:space-y-12 card-pop" style="background-color: var(--color-base-cream);">
         
         <!-- Header -->
@@ -104,6 +109,7 @@
             </div>
             <p class="text-xl sm:text-2xl text-white font-bold">Identify rude, harmful, or hateful comments instantly to keep conversations respectful, safe, and engaging.</p>
         </header>
+
 
         <!-- Live Classifier Section -->
         <section class="space-y-6 sm:space-y-8">
@@ -123,11 +129,12 @@
                         style="background-color: var(--color-primary-red);">
                     <span id="button-text" class="bold-header">CLASSIFY COMMENT!</span>
                     <svg id="loading-spinner" class="animate-spin -ml-1 mr-3 h-6 w-6 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        ircle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
                 </button>
             </div>
+
 
             <!-- Results Area -->
             <div id="results-area" class="space-y-6 pt-6 border-t-4 border-dashed border-gray-400 hidden">
@@ -139,6 +146,7 @@
                     A score above 50% means the toxicity level is HIGH!
                 </p>
             </div>
+
 
             <!-- AI Commentary Section -->
             <div id="commentary-area" class="space-y-4 pt-6 border-t-4 border-dashed border-gray-400 hidden">
@@ -153,11 +161,13 @@
                 </div>
             </div>
 
+
             <!-- Message/Status Area -->
             <div id="message-box" class="card-inner p-4 hidden" role="alert" style="font-family: 'Klee One', cursive; font-weight: 600;">
                 <p id="status-message" class="font-bold text-base sm:text-lg"></p>
             </div>
         </section>
+
 
         <!-- Metrics Section -->
         <section class="space-y-6 sm:space-y-8 pt-6 sm:pt-8 border-t-4 border-dashed border-gray-400">
@@ -184,9 +194,11 @@
                 </div>
             </div>
 
+
             <div class="p-4 rounded-lg card-inner border-l-8 border-gray-800 text-gray-800 text-sm font-medium" style="background-color: #FFF8E1; border-color: var(--color-secondary-yellow);">
                 <p class="font-bold text-base">⚡ SYSTEM SPECS</p>
                 <p class="mt-2">This system relies on a Bidirectional LSTM (BiLSTM) deep learning model for fast, accurate classification.</p>
+
 
                 <p class="font-bold mt-3">KEY PERFORMANCE METRICS:</p>
                 <ul class="list-disc list-inside ml-4 mt-2 text-sm" style="font-family: 'Klee One', cursive;">
@@ -195,19 +207,25 @@
                     <li><strong>Core Components:</strong> Bidirectional LSTM for deep context understanding, paired with dense layers for final multi-label scoring.</li>
                 </ul>
 
+
                 <p class="mt-3"><strong>POWERED BY:</strong> TensorFlow (BiLSTM) for speed and Gemini for contextual commentary.</p>
+
 
                 <p class="mt-3 text-sm">GitHub: <a href="https://github.com/ShardulJagdhane26/TOXINATOR" target="_blank" rel="noopener noreferrer" class="text-blue-600 font-bold underline">LINK</a></p>
             </div>
 
+
         </section>
 
+
     </div>
+
 
     <script>
         // --- Configuration ---
         // CLASSIFICATION API ENDPOINT (points to Render backend)
         const CLASSIFY_ENDPOINT = 'https://toxinator.onrender.com/api/classify'; 
+
 
         // --- DOM Elements ---
         const commentInput = document.getElementById('comment-input');
@@ -223,10 +241,12 @@
         const commentaryArea = document.getElementById('commentary-area');
         const analysisText = document.getElementById('analysis-text');
 
+
         // New DOM elements for live metrics
         const metricMostToxic = document.getElementById('metric-most-toxic');
         const metricLeastToxic = document.getElementById('metric-least-toxic');
         const metricAvgToxic = document.getElementById('metric-avg-toxic');
+
 
         // --- Live Metrics State ---
         let mostToxicOverall = 0; 
@@ -242,18 +262,22 @@
                 leastToxicOverall = currentAverage;
             }
 
+
             classificationCount++;
             totalToxicSum += currentAverage;
             const runningAverage = totalToxicSum / classificationCount;
+
 
             metricMostToxic.textContent = (mostToxicOverall * 100).toFixed(2) + '%';
             metricLeastToxic.textContent = (leastToxicOverall * 100).toFixed(2) + '%';
             metricAvgToxic.textContent = (runningAverage * 100).toFixed(2) + '%';
 
+
             if (classificationCount === 1) {
                 metricLeastToxic.textContent = (leastToxicOverall * 100).toFixed(2) + '%';
             }
         }
+
 
         function showMessage(msg, type) {
             messageBox.classList.remove('hidden');
@@ -262,6 +286,7 @@
             messageBox.style.backgroundColor = '#FFFDE7';
             messageBox.style.color = '#212121';
             messageBox.style.borderColor = '#212121';
+
 
             if (type === 'error') {
                 messageBox.style.backgroundColor = '#FFEBEE';
@@ -279,6 +304,7 @@
             statusMessage.textContent = msg;
         }
 
+
         function toggleLoading(isLoading) {
             const btn = classifyBtn;
             btn.disabled = isLoading;
@@ -289,10 +315,13 @@
                 analysisText.textContent = "Processing witty commentary...";
                 commentaryArea.classList.remove('hidden');
 
+
                 btn.style.boxShadow = 'none';
                 btn.style.transform = 'translate(4px, 4px)';
 
+
                 messageBox.classList.add('hidden');
+
 
             } else {
                 buttonText.textContent = 'CLASSIFY COMMENT!';
@@ -302,31 +331,40 @@
             }
         }
 
+
         async function initializeApp() {
             showMessage("ATTEMPTING TO CONNECT TO FLASK API...", "warning");
             classifyBtn.disabled = true;
 
+
             try {
                 const healthResponse = await fetch('https://toxinator.onrender.com', { method: 'GET' });
                 if (!healthResponse.ok) {
-                    const errorJson = await healthResponse.json();
+                    const errorJson = await healthResponse.json().catch(() => ({}));
                     throw new Error(`API responded with ${healthResponse.status}: ${errorJson.message || 'Unknown error'}`);
                 }
                 const healthData = await healthResponse.json();
 
-                if (healthData.status === "degraded") {
-                    showMessage(`API LOADED (DEGRADED): ${healthData.message} Classification works, but commentary may fail.`, "warning");
+
+                // FIX: Handle undefined status gracefully
+                const status = healthData.status || 'ready';
+                const statusMessage_text = healthData.message || 'Model loaded successfully';
+                
+                if (status === 'degraded') {
+                    showMessage(`API LOADED (DEGRADED): ${statusMessage_text}. Classification works, but commentary may fail.`, "warning");
                 } else {
-                    showMessage(`API READY! MODEL STATUS: ${healthData.status.toUpperCase()}. ENTER TEXT TO CLASSIFY!`, "success");
+                    showMessage(`API READY! MODEL STATUS: ${status.toUpperCase()}. ENTER TEXT TO CLASSIFY!`, "success");
                 }
                 
                 classifyBtn.disabled = false;
+
 
             } catch (error) {
                 console.error("CRITICAL ERROR CONNECTING TO FLASK API:", error);
                 showMessage(`ERROR! COULD NOT CONNECT TO API! Error: ${error.message}`, "error");
             }
         }
+
 
         async function classifyComment() {
             const comment = commentInput.value.trim();
@@ -337,11 +375,13 @@
             
             toggleLoading(true);
 
+
             let overallScore;
             let detailedScores;
             let categories;
             let analysisTextFromAPI;
             let success = false;
+
 
             try {
                 const response = await fetch(CLASSIFY_ENDPOINT, {
@@ -349,6 +389,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ comment: comment })
                 });
+
 
                 const data = await response.json();
                 
@@ -362,10 +403,12 @@
                 analysisTextFromAPI = data.analysis_text; 
                 success = true;
 
+
             } catch (error) {
                 console.error("CLASSIFICATION API ERROR:", error);
                 showMessage(`ZAP! CLASSIFICATION FAILED! Check console. Error: ${error.message}`, "error");
             }
+
 
             if (success) {
                 renderResults(overallScore, detailedScores, categories);
@@ -374,14 +417,18 @@
                 analysisText.textContent = "BEEP BOOP! Failed to classify and generate quirky analysis.";
             }
 
+
             toggleLoading(false);
             resultsArea.classList.remove('hidden');
         }
 
+
         function renderResults(overallScore, scores, labels) {
             outputScores.innerHTML = '';
 
+
             updateLiveMetrics(overallScore); 
+
 
             const overallPercentage = (overallScore * 100).toFixed(2);
             
@@ -410,12 +457,15 @@
             `;
             outputScores.insertAdjacentHTML('beforeend', overallHtml);
 
+
             scores.forEach((score, index) => {
                 const label = labels[index];
                 const percentage = (score * 100).toFixed(2);
                 const isToxic = score > 0.5;
 
+
                 let textColor;
+
 
                 if (isToxic) { 
                     textColor = 'text-red-800';
@@ -436,6 +486,7 @@
         }
         
         classifyBtn.addEventListener('click', classifyComment);
+
 
         window.onload = () => {
             initializeApp();
