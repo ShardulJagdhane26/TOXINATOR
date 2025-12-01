@@ -8,7 +8,7 @@ TOXINATOR uses a BiLSTM deep learning model and Gemini commentary to analyze how
 
 ## 🚀 Live Demo
 
-[https://toxinator.netlify.app](https://toxinator.netlify.app)
+[https://toxinator.vercel.app](https://toxinator.vercel.app)
 
 ---
 
